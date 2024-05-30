@@ -10,7 +10,7 @@ export default function Home() {
     try {
       const response = await fetch(`/api/tweets?username=${username}`);
       const data = await response.json();
-      setTweets(data);
+      setTweets(data.tweets);
     } catch (error) {
       console.error("Error fetching tweets:", error);
     }

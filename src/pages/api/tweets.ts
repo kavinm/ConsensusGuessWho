@@ -28,15 +28,27 @@ const fetchTweetsFromTwitter = async (authorId: string, nextToken: string | null
 */
 
 const fetchTweetsFromMongoDB = async (authorId: string, db) => {
-  return db.collection('tweets').findOne({ authorId });
+  console.log(`Retrieving tweets from mongodb for userId ${authorId}...`);
+  try{
+    return db.collection('tweets').findOne({ authorId });
+  } catch (e: any) {
+    console.log(`Error encountered on tweets fetch from mongodb: ${e.message}`);
+    return {}
+  }
 };
 
 const saveTweetsToMongoDB = async (authorId: string, tweets, db) => {
-  return db.collection('tweets').updateOne(
-    { authorId },
-    { $set: { authorId, tweets, lastUpdated: new Date() } },
-    { upsert: true }
-  );
+  try {
+    console.log(`Saving tweets from ${authorId} in mongodb.`);
+    return db.collection('tweets').updateOne(
+      { authorId },
+      { $set: { authorId, tweets, lastUpdated: new Date() } },
+      { upsert: true }
+    );
+  } catch {
+    console.log(`Error encountered on tweets save to mongodb: ${e.message}`);
+    return {}
+  }
 };
 
 const transformTweets = (tweets) => {
@@ -66,12 +78,14 @@ export default async function handler(req, res) {
     const cachedTweets = await fetchTweetsFromMongoDB(authorId, db);
 
     if (cachedTweets) {
+      console.log(`Found cached tweets for userId ${authorId}.`);
       // Return cached tweets if they exist
       res.status(200).json({
         author_id: cachedTweets.authorId,
         tweets: cachedTweets.tweets
       });
     } else {
+      console.log(`Unable to find cached tweets for userId ${authorId}.`);
       // Fetch tweets from Twitter API
       let allTweets = [];
       let nextToken = null;
