@@ -3,7 +3,7 @@ module guesswho::game {
     use sui::coin::{Self, Coin};
     use sui::balance::{Self, Balance};
     use std::hash::sha2_256;
-    use std::string::String;
+    use std::string::{Self, String};
 
     const EWinnerAlreadySelected: u64 = 1;
 
@@ -24,10 +24,10 @@ module guesswho::game {
         }, ctx.sender());
     }
 
-    public fun new<T: key + store>(influencer_hash: vector<u8>, ctx: &mut TxContext) {
+    public fun new<T: key + store>(influencer_hash: String, ctx: &mut TxContext) {
         let game = Game<T>{
             id: object::new(ctx),
-            influencer_hash,
+            influencer_hash: *influencer_hash.bytes(),
             winner: option::none(),
             stake: balance::zero(),
         };

@@ -3,7 +3,8 @@ module guesswho::game {
     use sui::coin::{Self, Coin};
     use sui::balance::{Self, Balance};
     use std::hash::sha2_256;
-    use std::string::String;
+    use std::string::{Self, String};
+    use sui::event;
 
     const EWinnerAlreadySelected: u64 = 1;
 
@@ -18,16 +19,21 @@ module guesswho::game {
         id: UID,
     }
 
+    public struct GameOver has copy, drop { 
+        id: ID, 
+        winner: address,
+    }
+
     fun init(ctx: &mut TxContext) {
         transfer::transfer(AdminCap {
             id: object::new(ctx),
         }, ctx.sender());
     }
 
-    public fun new<T: key + store>(influencer_hash: vector<u8>, ctx: &mut TxContext) {
+    public fun new<T: key + store>(influencer_hash: String, ctx: &mut TxContext) {
         let game = Game<T>{
             id: object::new(ctx),
-            influencer_hash,
+            influencer_hash: *influencer_hash.bytes(),
             winner: option::none(),
             stake: balance::zero(),
         };
@@ -61,6 +67,10 @@ module guesswho::game {
         let value = payout.value();
         payout.split_and_transfer(value, winner, ctx);
         payout.destroy_zero();
+        event::emit(GameOver {
+            id: object::uid_to_inner(&game.id),
+            winner,
+        });
     }
 
     fun add_to_stake<T: key + store>(game: &mut Game<T>, stake: Coin<T>) {
