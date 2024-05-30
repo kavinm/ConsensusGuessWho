@@ -5,6 +5,13 @@
     "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace", "Source Code Pro",
     "Fira Mono", "Droid Sans Mono", "Courier New", monospace;
 
+  @font-face {
+    font-family: "HelloRoti";
+    src: url("/fonts/HelloRoti.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+  }
+
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;

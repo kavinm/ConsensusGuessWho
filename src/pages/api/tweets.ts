@@ -34,6 +34,7 @@ export default async function handler(req, res) {
     do {
       const response = await fetchTweets(userId, nextToken);
       allTweets = allTweets.concat(response.data);
+      console.log(response.data);
       nextToken = response.meta.next_token;
       count += response.data.length;
     } while (nextToken && count < 1000); // Fetch up to 1000 tweets
