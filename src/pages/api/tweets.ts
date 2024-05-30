@@ -19,8 +19,13 @@ const fetchTweetsFromTwitter = async (authorId: string, nextToken: string | null
     ...(nextToken && { pagination_token: nextToken }),
   };
 
-  const response = await axios.get(url, { headers, params });
-  return response.data;
+  try {
+    const response = await axios.get(url, { headers, params });
+    return response.data;
+  } catch (e: any) {
+    console.log(`Error encountered when fetching tweets from X: ${e.message}`)
+    return {}
+  }
 };
 
 /*
@@ -37,15 +42,15 @@ const fetchTweetsFromMongoDB = async (authorId: string, db) => {
   }
 };
 
-const saveTweetsToMongoDB = async (authorId: string, tweets, db) => {
+const saveTweetsToMongoDB = async (userName: string, authorId: string, tweets, db) => {
   try {
     console.log(`Saving tweets from ${authorId} in mongodb.`);
     return db.collection('tweets').updateOne(
       { authorId },
-      { $set: { authorId, tweets, lastUpdated: new Date() } },
+      { $set: { authorId, userName, tweets, lastUpdated: new Date() } },
       { upsert: true }
     );
-  } catch {
+  } catch(e: any) {
     console.log(`Error encountered on tweets save to mongodb: ${e.message}`);
     return {}
   }
@@ -82,6 +87,7 @@ export default async function handler(req, res) {
       // Return cached tweets if they exist
       res.status(200).json({
         author_id: cachedTweets.authorId,
+        author_name: cachedTweets.userName,
         tweets: cachedTweets.tweets
       });
     } else {
@@ -93,18 +99,21 @@ export default async function handler(req, res) {
 
       do {
         const response = await fetchTweetsFromTwitter(authorId, nextToken);
-        const filteredTweets = transformTweets(response.data);
-        allTweets = allTweets.concat(filteredTweets);
-        nextToken = response.meta.next_token;
-        count += response.data.length;
+        if (response.data) {
+          const filteredTweets = transformTweets(response.data);
+          allTweets = allTweets.concat(filteredTweets);
+          nextToken = response.meta.next_token;
+          count += response.data.length;
+        }
       } while (nextToken && count < 1000); // Fetch up to 1000 tweets
 
       // Save the new tweets to MongoDB
-      await saveTweetsToMongoDB(authorId, allTweets, db);
+      await saveTweetsToMongoDB(username, authorId, allTweets, db);
 
       // Return the fetched tweets
       res.status(200).json({
         author_id: authorId,
+        author_name: username,
         tweets: allTweets
       });
     }

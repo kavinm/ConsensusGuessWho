@@ -4,7 +4,7 @@ const openAiApiBaseUrl = "https://api.openai.com/v1/chat/completions";
 
 const createPromptWithTweets = (tweets) => {
   const tweetsText = tweets.map((tweet) => tweet.text).join("\n");
-  return `Here are some tweets from the user:\n\n${tweetsText}\n\nBased on these tweets, answer the following question:`;
+  return `Here are some tweets from the user:\n\n${tweetsText}\n\nBased on these tweets, answer the following question with a yes or no answer and a single sentence for an explanation - avoid mentioning the author of the tweets name:`;
 };
 
 export default async function handler(req, res) {
