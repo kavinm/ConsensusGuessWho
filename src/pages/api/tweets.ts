@@ -107,8 +107,10 @@ export default async function handler(req, res) {
         }
       } while (nextToken && count < 1000); // Fetch up to 1000 tweets
 
-      // Save the new tweets to MongoDB
-      await saveTweetsToMongoDB(username, authorId, allTweets, db);
+      if (allTweets.length > 0) {
+        // Save the new tweets to MongoDB
+        await saveTweetsToMongoDB(username, authorId, allTweets, db);
+      }
 
       // Return the fetched tweets
       res.status(200).json({
