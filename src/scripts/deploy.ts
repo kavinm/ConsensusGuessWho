@@ -14,7 +14,7 @@ import { MongoClient } from "mongodb";
 const NAME = "guesswho";
 
 dotenv.config({ path: ".env" });
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const PRIVATE_KEY = process.env.PRIVATE_KEY!;
 if (!PRIVATE_KEY) throw new Error("PRIVATE_KEY is not set");
 const NETWORK = "testnet";
 const keccak256 = require("keccak256");

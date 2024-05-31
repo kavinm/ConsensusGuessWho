@@ -1,7 +1,7 @@
 import axios from "axios";
 import { MongoClient } from "mongodb";
 
-const fetchAllTweetsFromMongoDB = async (db) => {
+const fetchAllTweetsFromMongoDB = async (db: any) => {
   console.log(`Retrieving all tweets from MongoDB...`);
   try {
     return db.collection("tweets").find({}).toArray();
@@ -11,7 +11,7 @@ const fetchAllTweetsFromMongoDB = async (db) => {
   }
 };
 
-const fetchTweetsFromMongoDB = async (userName: string, db) => {
+const fetchTweetsFromMongoDB = async (userName: string, db: any) => {
   console.log(`Retrieving tweets from mongodb for userName ${userName}...`);
   try {
     return db.collection("tweets").findOne({ userName });
@@ -21,9 +21,9 @@ const fetchTweetsFromMongoDB = async (userName: string, db) => {
   }
 };
 
-export default async function handler(req, res) {
+export default async function handler(req: any, res: any) {
   // Connect to MongoDB
-  const client = new MongoClient(process.env.MONGODB_URI);
+  const client = new MongoClient(process.env.MONGODB_URI!);
   await client.connect();
   const db = client.db();
   const { username } = req.query;

@@ -13,7 +13,7 @@ import { bcs } from "@mysten/sui/bcs";
 const keccak256 = require("keccak256");
 
 dotenv.config({ path: ".env" });
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const PRIVATE_KEY = process.env.PRIVATE_KEY!;
 if (!PRIVATE_KEY) throw new Error("PRIVATE_KEY is not set");
 
 const keypair = Ed25519Keypair.fromSecretKey(fromHEX(PRIVATE_KEY));

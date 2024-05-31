@@ -62,7 +62,7 @@ export default async function handler(req: any, res: any) {
       ],
       typeArguments: TYPE_ARGS,
     });
-    const PRIVATE_KEY = process.env.PRIVATE_KEY;
+    const PRIVATE_KEY = process.env.PRIVATE_KEY!;
     const keypair = Ed25519Keypair.fromSecretKey(fromHEX(PRIVATE_KEY!));
     const executeResult = await client.signAndExecuteTransactionBlock({
       transactionBlock: txb,

@@ -1,6 +1,6 @@
 import { MongoClient } from "mongodb";
 
-export default async function handler(req, res) {
+export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   }
 
   // Connect to MongoDB
-  const client = new MongoClient(process.env.MONGODB_URI2);
+  const client = new MongoClient(process.env.MONGODB_URI2!);
   await client.connect();
   const db = client.db();
 
@@ -23,11 +23,9 @@ export default async function handler(req, res) {
     // Add the new string
     await db.collection("stringsCollection").insertOne({ userName });
 
-    res
-      .status(200)
-      .json({
-        message: "userName successfully added and previous userName deleted",
-      });
+    res.status(200).json({
+      message: "userName successfully added and previous userName deleted",
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to process request" });

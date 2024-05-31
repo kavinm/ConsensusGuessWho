@@ -2,12 +2,12 @@ import axios from "axios";
 
 const openAiApiBaseUrl = "https://api.openai.com/v1/chat/completions";
 
-const createPromptWithTweets = (tweets) => {
-  const tweetsText = tweets.map((tweet) => tweet.text).join("\n");
+const createPromptWithTweets = (tweets: any) => {
+  const tweetsText = tweets.map((tweet: any) => tweet.text).join("\n");
   return `Here are some tweets from the user:\n\n${tweetsText}\n\nBased on these tweets, answer the following question. Only reply with a yes or no and how sure you are it is yes or no based on the tweets`;
 };
 
-export default async function handler(req, res) {
+export default async function handler(req: any, res: any) {
   const { tweets, question } = req.body;
   const prompt = createPromptWithTweets(tweets);
 
@@ -26,7 +26,7 @@ export default async function handler(req, res) {
       },
       {
         headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY!}`,
           "Content-Type": "application/json",
         },
       }
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
 
     const answer = response.data.choices[0].message.content.trim();
     res.status(200).json({ answer });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error.response ? error.response.data : error.message);
     res.status(500).json({ error: "Failed to get answer" });
   }

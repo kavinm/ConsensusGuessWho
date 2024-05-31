@@ -7,7 +7,7 @@ import { MongoClient } from "mongodb";
 
 const twitterApiBaseUrl = "https://api.twitter.com/2";
 const headers = {
-  Authorization: `Bearer ${process.env.TWITTER_BEARER_TOKEN}`,
+  Authorization: `Bearer ${process.env.TWITTER_BEARER_TOKEN!}`,
 };
 
 const fetchTweetsFromTwitter = async (

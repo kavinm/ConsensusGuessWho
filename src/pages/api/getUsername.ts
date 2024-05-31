@@ -1,12 +1,12 @@
 import { MongoClient } from "mongodb";
 
-export default async function handler(req, res) {
+export default async function handler(req: any, res: any) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   // Connect to MongoDB
-  const client = new MongoClient(process.env.MONGODB_URI2);
+  const client = new MongoClient(process.env.MONGODB_URI2!);
   await client.connect();
   const db = client.db();
 
