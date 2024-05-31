@@ -70,13 +70,15 @@ async function main() {
   if (!packageId) {
     throw new Error("Could not find packageId");
   }
-  let upgradeCap, adminCap;
+  let upgradeCap, adminCap, game;
   for (const change of objectChanges!) {
     if (change.type === "created") {
       if (change.objectType === `0x2::package::UpgradeCap`)
         upgradeCap = change.objectId;
       else if (change.objectType === `${packageId}::game::AdminCap`)
         adminCap = change.objectId;
+      else if (change.objectType === `${packageId}::game::Game`)
+        game = change.objectId;
     }
   }
 
@@ -84,6 +86,7 @@ async function main() {
     PACKAGE_ID: packageId,
     UPGRADE_CAP: upgradeCap,
     ADMIN_CAP: adminCap,
+    GAME: game,
   };
 
   const deployed_path = path.join(

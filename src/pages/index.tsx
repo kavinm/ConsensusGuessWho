@@ -8,25 +8,31 @@ import { TransactionBlock } from "@mysten/sui.js/transactions";
 import ADDRESSES from "../deployed_addresses.json";
 import { sha256 } from "js-sha256";
 import { Transaction } from "@mysten/sui/transactions";
+import { STAKE, TYPE_ARGS } from "@/constants";
 
 export default function Home() {
-  const STAKE = 10;
   const [username, setUsername] = useState("");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [tweets, setTweets] = useState([]);
   const [game, setGame] = useState("");
   const [guess, setGuess] = useState("");
-  const { PACKAGE_ID } = ADDRESSES;
+  const { PACKAGE_ID, ADMIN_CAP, GAME } = ADDRESSES;
 
-  const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+  const { mutate: signAndExecuteTransaction, data } =
+    useSignAndExecuteTransaction();
   const handleFetchTweets = async () => {
     try {
       const txb = new Transaction();
       const influencer = sha256(username);
       txb.moveCall({
-        target: `${PACKAGE_ID}::game::new`,
-        arguments: [txb.pure.string(influencer)],
+        target: `${PACKAGE_ID}::round::new`,
+        arguments: [
+          txb.object(ADMIN_CAP),
+          txb.pure.string(GAME),
+          txb.pure.string(influencer),
+        ],
+        typeArguments: TYPE_ARGS,
       });
       signAndExecuteTransaction(
         {
