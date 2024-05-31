@@ -11,7 +11,7 @@ import { writeFileSync } from "fs";
 const NAME = "guesswho";
 
 dotenv.config({ path: ".env" });
-const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const PRIVATE_KEY = process.env.NEXT_PUBLIC_PRIVATE_KEY;
 if (!PRIVATE_KEY) throw new Error("PRIVATE_KEY is not set");
 const NETWORK = "testnet";
 

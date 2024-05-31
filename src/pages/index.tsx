@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ConnectButton,
   useCurrentAccount,
@@ -18,8 +18,10 @@ import {
   Flex,
   Heading,
 } from "@chakra-ui/react";
+import { getStakeBalance } from "@/contract/indexer";
 
 export default function Home() {
+  const [potBalance, setPotBalance] = useState("");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [tweets, setTweets] = useState([]);
@@ -28,19 +30,14 @@ export default function Home() {
   const client = useSuiClient();
   const { mutateAsync: signTransaction } = useSignTransaction();
 
+  useEffect(() => {
+    getStakeBalance()
+      .then((balance) => setPotBalance(balance))
+      .catch((error) => console.error("Error fetching pot balance:", error));
+  }, [potBalance]);
+
   const handleFetchTweets = async (username: string) => {
     try {
-      const txb = await newRound(username);
-      const { bytes, signature } = await signTransaction({
-        transaction: txb,
-        chain: "sui:testnet",
-      });
-      const executeResult = await client.executeTransactionBlock({
-        transactionBlock: bytes,
-        signature,
-      });
-
-      console.log(executeResult);
       const response = await fetch(`/api/tweets?username=${username}`);
       const data = await response.json();
       setTweets(data.tweets);

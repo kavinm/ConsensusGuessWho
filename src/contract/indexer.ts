@@ -22,6 +22,6 @@ async function getRoundObject() {
   return game.data[0];
 }
 
-async function getSuiClient() {
+export async function getSuiClient() {
   return new SuiClient({ url: getFullnodeUrl("testnet") });
 }
