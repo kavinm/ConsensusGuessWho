@@ -2,55 +2,38 @@ import { useState } from "react";
 import {
   ConnectButton,
   useCurrentAccount,
-  useSignAndExecuteTransaction,
+  useCurrentWallet,
+  useSuiClient,
+  useSignTransaction,
 } from "@mysten/dapp-kit";
-import { TransactionBlock } from "@mysten/sui.js/transactions";
-import ADDRESSES from "../deployed_addresses.json";
-import { sha256 } from "js-sha256";
-import { Transaction } from "@mysten/sui/transactions";
-import { STAKE, TYPE_ARGS } from "@/constants";
+import { askQuestion, guessAnswer, newRound } from "@/contract/calls";
 
 export default function Home() {
   const [username, setUsername] = useState("");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [tweets, setTweets] = useState([]);
-  const [game, setGame] = useState("");
   const [guess, setGuess] = useState("");
-  const { PACKAGE_ID, ADMIN_CAP, GAME } = ADDRESSES;
+  const account = useCurrentAccount();
+  const client = useSuiClient();
+  const { mutateAsync: signTransaction } = useSignTransaction();
 
-  const { mutate: signAndExecuteTransaction, data } =
-    useSignAndExecuteTransaction();
   const handleFetchTweets = async () => {
     try {
-      const txb = new Transaction();
-      const influencer = sha256(username);
-      txb.moveCall({
-        target: `${PACKAGE_ID}::round::new`,
-        arguments: [
-          txb.object(ADMIN_CAP),
-          txb.pure.string(GAME),
-          txb.pure.string(influencer),
-        ],
-        typeArguments: TYPE_ARGS,
+      const txb = await newRound(username);
+      const { bytes, signature } = await signTransaction({
+        transaction: txb,
+        chain: "sui:testnet",
       });
-      signAndExecuteTransaction(
-        {
-          transaction: txb,
-          chain: "sui:testnet",
-        },
-        {
-          onSuccess: async (result) => {
-            console.log("Transaction successful:", result);
-            const response = await fetch(`/api/tweets?username=${username}`);
-            const data = await response.json();
-            setTweets(data);
-          },
-          onError: (error) => {
-            console.error("Error asking question:", error);
-          },
-        }
-      );
+      const executeResult = await client.executeTransactionBlock({
+        transactionBlock: bytes,
+        signature,
+      });
+
+      console.log(executeResult);
+      const response = await fetch(`/api/tweets?username=${username}`);
+      const data = await response.json();
+      setTweets(data);
     } catch (error) {
       console.error("Error fetching tweets:", error);
     }
@@ -58,35 +41,26 @@ export default function Home() {
 
   const handleAskQuestion = async () => {
     try {
-      const txb = new Transaction();
-      const [coin] = txb.splitCoins(txb.gas, [STAKE]);
-      txb.moveCall({
-        target: `${PACKAGE_ID}::game::ask`,
-        arguments: [txb.object(game), txb.object(coin)],
+      const txb = await askQuestion();
+      const { bytes, signature } = await signTransaction({
+        transaction: txb,
+        chain: "sui:testnet",
       });
-      signAndExecuteTransaction(
-        {
-          transaction: txb,
-          chain: "sui:testnet",
+      const executeResult = await client.executeTransactionBlock({
+        transactionBlock: bytes,
+        signature,
+      });
+
+      console.log(executeResult);
+      const response = await fetch("/api/ask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        {
-          onSuccess: async (result) => {
-            console.log("Transaction successful:", result);
-            const response = await fetch("/api/ask", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ tweets, question }),
-            });
-            const data = await response.json();
-            setAnswer(data.answer);
-          },
-          onError: (error) => {
-            console.error("Error asking question:", error);
-          },
-        }
-      );
+        body: JSON.stringify({ tweets, question }),
+      });
+      const data = await response.json();
+      setAnswer(data.answer);
     } catch (error) {
       console.error("Error asking question:", error);
     }
@@ -94,27 +68,27 @@ export default function Home() {
 
   const handleGuess = async () => {
     try {
-      const txb = new Transaction();
-      const [coin] = txb.splitCoins(txb.gas, [STAKE]);
-      txb.moveCall({
-        target: `${PACKAGE_ID}::game::guess`,
-        arguments: [txb.object(game), txb.object(coin), txb.pure.string(guess)],
+      const txb = await guessAnswer(guess);
+      const { bytes, signature } = await signTransaction({
+        transaction: txb,
+        chain: "sui:testnet",
       });
-      signAndExecuteTransaction(
-        {
-          transaction: txb,
-          chain: "sui:testnet",
+      const executeResult = await client.executeTransactionBlock({
+        transactionBlock: bytes,
+        signature,
+        options: {
+          showEvents: true,
         },
-        {
-          onSuccess: async (result) => {
-            console.log("Transaction successful:", result);
-            // TODO:
-          },
-          onError: (error) => {
-            console.error("Error asking question:", error);
-          },
+      });
+
+      console.log(executeResult);
+      if (executeResult.events) {
+        const winner = (executeResult as any).events[0].parsedJson.winner;
+        if (winner === account?.address) {
+          // TODO:
+          alert("You won!");
         }
-      );
+      }
     } catch (error) {
       console.error("Error asking question:", error);
     }
