@@ -14,6 +14,7 @@ export default async function handler(req, res) {
     const record = await db
       .collection("stringsCollection")
       .findOne({}, { projection: { userName: 1, _id: 0 } });
+    console.log(record);
 
     if (record && record.userName) {
       res.status(200).json({ userName: record.userName });
@@ -22,6 +23,7 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error(error);
+
     res.status(500).json({ error: "Failed to fetch userName" });
   } finally {
     // Close the MongoDB connection

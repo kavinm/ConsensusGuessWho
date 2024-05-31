@@ -1,4 +1,4 @@
-import { SUI_DECIMALS } from "@mysten/sui.js/utils";
+import { SUI_DECIMALS } from "@mysten/sui/utils";
 
 const SUI_MULTIPLIER = Math.pow(10, SUI_DECIMALS);
 

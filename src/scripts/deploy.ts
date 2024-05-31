@@ -7,9 +7,9 @@ import { execSync } from "child_process";
 import { fileURLToPath } from "url";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { writeFileSync } from "fs";
-import { sha256 } from "js-sha256";
 import { TYPE_ARGS } from "@/constants";
 import { bcs } from "@mysten/sui/bcs";
+import { MongoClient } from "mongodb";
 
 const NAME = "guesswho";
 
@@ -21,7 +21,9 @@ const keccak256 = require("keccak256");
 
 if (!NETWORK) throw new Error("NEXT_PUBLIC_SUI_NETWORK is not set");
 
-const keypair = Ed25519Keypair.fromSecretKey(fromHEX(PRIVATE_KEY));
+const keypair = Ed25519Keypair.fromSecretKey(
+  fromHEX("45d59c3986273d2d6e3df95836e5b356b6a3557d9545c82b09139b13053b07f9")
+);
 
 const client = new SuiClient({
   url: getFullnodeUrl(NETWORK),
@@ -94,8 +96,18 @@ async function main() {
   };
 
   const txb1 = new TransactionBlock();
-  const username = "VitalikButerin";
-  const answer_hash = keccak256(username);
+  const userName = "VitalikButerin";
+  // Connect to MongoDB
+  const mongoClient = new MongoClient(process.env.MONGODB_URI2!);
+  await mongoClient.connect();
+  const db = mongoClient.db();
+
+  // Delete all existing records
+  await db.collection("stringsCollection").deleteMany({});
+
+  // Add the new string
+  await db.collection("stringsCollection").insertOne({ userName });
+  const answer_hash = keccak256(userName);
   txb1.moveCall({
     target: `${packageId}::round::new`,
     arguments: [

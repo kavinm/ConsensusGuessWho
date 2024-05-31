@@ -1,6 +1,6 @@
-import { getFullnodeUrl, SuiClient } from "@mysten/sui.js/client";
+import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
 import ADDRESSES from "../deployed_addresses.json";
-import { SUI_DECIMALS } from "@mysten/sui.js/utils";
+import { SUI_DECIMALS } from "@mysten/sui/utils";
 
 export async function getStakeBalance() {
   const { GAME } = ADDRESSES;

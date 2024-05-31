@@ -25,10 +25,10 @@ export default function Home() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [tweets, setTweets] = useState([]);
-
-  // const account = useCurrentAccount();
-  // const client = useSuiClient();
-  // const { mutateAsync: signTransaction } = useSignTransaction();
+  const [guess, setGuess] = useState("");
+  const account = useCurrentAccount();
+  const client = useSuiClient();
+  const { mutateAsync: signTransaction } = useSignTransaction();
 
   const fetchPotBalance = async () => {
     try {
@@ -41,9 +41,19 @@ export default function Home() {
 
   const handleFetchTweets = async (username: string) => {
     try {
-      const response = await fetch(`/api/tweets?username=${username}`);
-      const data = await response.json();
-      setTweets(data.tweets);
+      const getUsernameResponse = await fetch("/api/getUsername");
+      const getUsernameData = await getUsernameResponse.json();
+      const storedUsername = getUsernameData.userName;
+      console.log(storedUsername);
+
+      // Call fetchTweets API with the retrieved username
+      const fetchTweetsResponse = await fetch(
+        `/api/tweets?username=${storedUsername}`
+      );
+      const fetchTweetsData = await fetchTweetsResponse.json();
+      console.log(fetchTweetsData.tweets);
+
+      setTweets(fetchTweetsData.tweets);
     } catch (error) {
       console.error("Error fetching tweets:", error);
     }
@@ -51,15 +61,15 @@ export default function Home() {
 
   const handleAskQuestion = async () => {
     try {
-      // const txb = await askQuestion();
-      // const { bytes, signature } = await signTransaction({
-      //   transaction: txb,
-      //   chain: "sui:testnet",
-      // });
-      // const executeResult = await client.executeTransactionBlock({
-      //   transactionBlock: bytes,
-      //   signature,
-      // });
+      const txb = await askQuestion();
+      const { bytes, signature } = await signTransaction({
+        transaction: txb,
+        chain: "sui:testnet",
+      });
+      const executeResult = await client.executeTransactionBlock({
+        transactionBlock: bytes,
+        signature,
+      });
 
       console.log(executeResult);
       await fetchPotBalance();
