@@ -1,6 +1,7 @@
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import { ChakraProvider } from "@chakra-ui/react";
+import "@mysten/dapp-kit/dist/index.css";
 
 import {
   createNetworkConfig,
@@ -20,12 +21,11 @@ export default function App({ Component, pageProps }: AppProps) {
     <QueryClientProvider client={queryClient}>
       <SuiClientProvider networks={networkConfig} defaultNetwork="localnet">
         <WalletProvider>
-        <ChakraProvider>
-      <Component {...pageProps} />
-    </ChakraProvider>
+          <ChakraProvider>
+            <Component {...pageProps} />
+          </ChakraProvider>
         </WalletProvider>
       </SuiClientProvider>
     </QueryClientProvider>
-
   );
 }
