@@ -34,7 +34,7 @@ export default function Home() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ question, tweets }),
       });
       const data = await response.json();
       setAnswer(data.answer);
@@ -126,12 +126,14 @@ export default function Home() {
             mt={4}
             bg="whiteAlpha.800"
             p={2}
+            color="black"
             borderRadius="md"
             textAlign="center">
             Answer: {answer}
           </Text>
         )}
       </VStack>
+      <Button onClick={() => handleFetchTweets("VitalikButerin")}>Test</Button>{" "}
     </Box>
   );
 }
