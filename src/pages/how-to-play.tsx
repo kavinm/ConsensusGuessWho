@@ -28,7 +28,7 @@ export default function Instructions() {
       <Image
         src="/robot.png"
         alt="Pot Person"
-        boxSize="350px"
+        boxSize="250px"
         position="absolute"
         right="15%"
         bottom="5%"
