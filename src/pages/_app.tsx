@@ -1,5 +1,7 @@
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
+import { ChakraProvider } from "@chakra-ui/react";
+
 import {
   createNetworkConfig,
   SuiClientProvider,
@@ -18,9 +20,12 @@ export default function App({ Component, pageProps }: AppProps) {
     <QueryClientProvider client={queryClient}>
       <SuiClientProvider networks={networkConfig} defaultNetwork="localnet">
         <WalletProvider>
-          <Component {...pageProps} />;
+        <ChakraProvider>
+      <Component {...pageProps} />
+    </ChakraProvider>
         </WalletProvider>
       </SuiClientProvider>
     </QueryClientProvider>
+
   );
 }
