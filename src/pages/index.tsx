@@ -17,7 +17,16 @@ import {
   HStack,
   Flex,
   Heading,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
 } from "@chakra-ui/react";
+import Link from "next/link";
 import { getStakeBalance } from "@/contract/indexer";
 
 export default function Home() {
@@ -29,10 +38,15 @@ export default function Home() {
   const account = useCurrentAccount();
   const client = useSuiClient();
   const { mutateAsync: signTransaction } = useSignTransaction();
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   useEffect(() => {
     handleFetchTweets()
-      .then(() => {})
+      .then(() => {
+        getStakeBalance().then((balance) => {
+          setPotBalance(balance.toString());
+        });
+      })
       .catch((error) => console.error("Error fetching data:", error));
   }, []);
 
@@ -88,6 +102,7 @@ export default function Home() {
       });
       const data = await response.json();
       setAnswer(data.answer);
+      onOpen(); // Open the modal
     } catch (error) {
       console.error("Error asking question:", error);
     }
@@ -133,8 +148,6 @@ export default function Home() {
 
   return (
     <>
-      <ConnectButton />
-      <div>{potBalance} SUI</div>
       <Box
         p={4}
         minH="100vh"
@@ -144,8 +157,19 @@ export default function Home() {
         display="flex"
         alignItems="center"
         justifyContent="center"
-        position="relative"
-      >
+        position="relative">
+        <Box position="absolute" top="1rem" right="1rem">
+          <ConnectButton />
+        </Box>
+        <Box position="absolute" bottom="33%" right="70%" cursor="pointer">
+          <Link href="/how-to-play" passHref>
+            <Box bg="#32a0a8" borderRadius="md">
+              <Text fontSize="2xl" color="black">
+                How to Play
+              </Text>
+            </Box>
+          </Link>
+        </Box>
         <Image
           src="/guessPerson.png"
           alt="Guess Person"
@@ -164,6 +188,19 @@ export default function Home() {
           bottom="5%"
           transform="translateX(50%)"
         />
+        <Box
+          position="absolute"
+          right="27%"
+          bottom="15%"
+          transform="translateX(50%)"
+          color="white"
+          bg="transparent"
+          p={2}
+          borderRadius="md"
+          fontWeight="bold"
+          fontSize="2xl">
+          Current Pot: {potBalance} SUI
+        </Box>
         <VStack spacing={4} p={8} bg="transparent" borderRadius="md">
           <Image
             src="/guessWho.png"
@@ -176,52 +213,73 @@ export default function Home() {
             transform="translateX(-50%)"
             width="90%"
           />
-          <VStack spacing={4} w="100%" maxW="md" mt="100%">
-            {" "}
-            // Adjusted margin-top
-            <HStack w="100%">
+          <VStack spacing={4} w="100%" maxW="md">
+            <HStack w="100%" spacing={4}>
               <Input
                 placeholder="Ask a question"
                 color="black"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                size="sm"
+                size="lg" // Adjusted size
+                p={4} // Added padding
+                fontSize="lg" // Increased font size
+                width="80%" // Adjusted width
                 bg="whiteAlpha.800"
                 sx={{ fontFamily: "HelloRoti" }}
               />
-              <Button onClick={handleAskQuestion} colorScheme="teal" size="sm">
+              <Button
+                onClick={handleAskQuestion}
+                colorScheme="teal"
+                size="lg"
+                fontSize="lg">
                 Ask
               </Button>
             </HStack>
-            <HStack w="100%">
+            <HStack w="100%" spacing={4}>
               <Input
                 placeholder="Submit your guess"
                 color="black"
                 value={guess}
                 onChange={(e) => setGuess(e.target.value)}
-                size="sm"
+                size="lg" // Adjusted size
+                p={4} // Added padding
+                fontSize="lg" // Increased font size
+                width="80%" // Adjusted width
                 bg="whiteAlpha.800"
                 sx={{ fontFamily: "HelloRoti" }}
               />
-              <Button onClick={handleGuess} colorScheme="teal" size="sm">
+              <Button
+                onClick={handleGuess}
+                colorScheme="teal"
+                size="lg"
+                fontSize="lg">
                 Guess
               </Button>
             </HStack>
           </VStack>
-          {answer && (
-            <Text
-              mt={4}
-              bg="whiteAlpha.800"
-              p={2}
-              color="black"
-              borderRadius="md"
-              textAlign="center"
-            >
-              Answer: {answer}
-            </Text>
-          )}
         </VStack>
       </Box>
+
+      <Modal isOpen={isOpen} onClose={onClose} isCentered>
+        <ModalOverlay />
+        <ModalContent
+          backgroundImage="url('/blueBG.png')"
+          backgroundSize="cover"
+          backgroundPosition="center">
+          <ModalHeader>Answer</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text color="black" p={2} borderRadius="md" textAlign="center">
+              {answer}
+            </Text>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="teal" onClick={onClose}>
+              Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 }

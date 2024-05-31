@@ -24,7 +24,7 @@ export default async function handler(req: any, res: any) {
   try {
     const txb = new TransactionBlock();
     const usernames = [
-      "Vitalikbuterin",
+      "VitalikButerin",
       "saylor",
       "tyler",
       "gavofyork",
