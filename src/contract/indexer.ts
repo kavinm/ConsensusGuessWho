@@ -1,5 +1,6 @@
 import { getFullnodeUrl, SuiClient } from "@mysten/sui.js/client";
 import ADDRESSES from "../deployed_addresses.json";
+import { SUI_DECIMALS } from "@mysten/sui.js/utils";
 
 export async function getStakeBalance() {
   const { GAME } = ADDRESSES;
@@ -9,7 +10,10 @@ export async function getStakeBalance() {
     name: object.name,
     parentId: GAME,
   });
-  return (data.data?.content as any).fields.value.fields.stake;
+  // Balance in MIST
+  const balance = (data.data?.content as any).fields.value.fields.stake;
+  // Balance in SUI
+  return balance / Math.pow(10, SUI_DECIMALS);
 }
 
 async function getRoundObject() {

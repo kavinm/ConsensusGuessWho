@@ -6,7 +6,7 @@ import {
   useSuiClient,
   useSignTransaction,
 } from "@mysten/dapp-kit";
-import { askQuestion, guessAnswer, newRound } from "@/contract/calls";
+import { askQuestion, guessAnswer } from "@/contract/calls";
 import {
   Box,
   Button,
@@ -21,7 +21,7 @@ import {
 import { getStakeBalance } from "@/contract/indexer";
 
 export default function Home() {
-  const [potBalance, setPotBalance] = useState("");
+  const [potBalance, setPotBalance] = useState("0");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [tweets, setTweets] = useState([]);
@@ -30,11 +30,14 @@ export default function Home() {
   const client = useSuiClient();
   const { mutateAsync: signTransaction } = useSignTransaction();
 
-  useEffect(() => {
-    getStakeBalance()
-      .then((balance) => setPotBalance(balance))
-      .catch((error) => console.error("Error fetching pot balance:", error));
-  }, [potBalance]);
+  const fetchPotBalance = async () => {
+    try {
+      const balance = await getStakeBalance();
+      setPotBalance(balance.toString());
+    } catch (error) {
+      console.error("Error fetching pot balance:", error);
+    }
+  };
 
   const handleFetchTweets = async (username: string) => {
     try {
@@ -59,6 +62,7 @@ export default function Home() {
       });
 
       console.log(executeResult);
+      await fetchPotBalance();
       const response = await fetch("/api/ask", {
         method: "POST",
         headers: {
@@ -75,6 +79,7 @@ export default function Home() {
 
   const handleGuess = async () => {
     try {
+      console.log("Guessing answer:", guess);
       const txb = await guessAnswer(guess);
       const { bytes, signature } = await signTransaction({
         transaction: txb,
@@ -87,13 +92,20 @@ export default function Home() {
           showEvents: true,
         },
       });
-
+      await fetchPotBalance();
       console.log(executeResult);
-      if (executeResult.events) {
+      if (executeResult.events && executeResult.events?.length > 0) {
         const winner = (executeResult as any).events[0].parsedJson.winner;
+        console.log("Winner: ", winner);
         if (winner === account?.address) {
           // TODO:
           alert("You won!");
+          const response = await fetch("/api/round");
+          if (response.ok) {
+            alert("New round started!");
+          } else {
+            alert("Error starting new round");
+          }
         }
       }
     } catch (error) {
@@ -104,6 +116,7 @@ export default function Home() {
   return (
     <>
       <ConnectButton />
+      <div>{potBalance} SUI</div>
       <Box
         p={4}
         minH="100vh"

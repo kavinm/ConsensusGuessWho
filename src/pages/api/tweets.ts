@@ -2,15 +2,18 @@ import axios from "axios";
 import { MongoClient } from "mongodb";
 
 /*
-* Twitter Operations
-*/
+ * Twitter Operations
+ */
 
 const twitterApiBaseUrl = "https://api.twitter.com/2";
 const headers = {
   Authorization: `Bearer ${process.env.TWITTER_BEARER_TOKEN}`,
 };
 
-const fetchTweetsFromTwitter = async (authorId: string, nextToken: string | null = null) => {
+const fetchTweetsFromTwitter = async (
+  authorId: string,
+  nextToken: string | null = null
+) => {
   const url = `${twitterApiBaseUrl}/users/${authorId}/tweets`;
   const params = {
     max_results: 100,
@@ -23,51 +26,58 @@ const fetchTweetsFromTwitter = async (authorId: string, nextToken: string | null
     const response = await axios.get(url, { headers, params });
     return response.data;
   } catch (e: any) {
-    console.log(`Error encountered when fetching tweets from X: ${e.message}`)
-    return {}
+    console.log(`Error encountered when fetching tweets from X: ${e.message}`);
+    return {};
   }
 };
 
 /*
-* MongoDB Operations
-*/
+ * MongoDB Operations
+ */
 
-const fetchTweetsFromMongoDB = async (authorId: string, db) => {
+const fetchTweetsFromMongoDB = async (authorId: string, db: any) => {
   console.log(`Retrieving tweets from mongodb for userId ${authorId}...`);
-  try{
-    return db.collection('tweets').findOne({ authorId });
+  try {
+    return db.collection("tweets").findOne({ authorId });
   } catch (e: any) {
     console.log(`Error encountered on tweets fetch from mongodb: ${e.message}`);
-    return {}
+    return {};
   }
 };
 
-const saveTweetsToMongoDB = async (userName: string, authorId: string, tweets, db) => {
+const saveTweetsToMongoDB = async (
+  userName: string,
+  authorId: string,
+  tweets: any[],
+  db: any
+) => {
   try {
     console.log(`Saving tweets from ${authorId} in mongodb.`);
-    return db.collection('tweets').updateOne(
-      { authorId },
-      { $set: { authorId, userName, tweets, lastUpdated: new Date() } },
-      { upsert: true }
-    );
-  } catch(e: any) {
+    return db
+      .collection("tweets")
+      .updateOne(
+        { authorId },
+        { $set: { authorId, userName, tweets, lastUpdated: new Date() } },
+        { upsert: true }
+      );
+  } catch (e: any) {
     console.log(`Error encountered on tweets save to mongodb: ${e.message}`);
-    return {}
+    return {};
   }
 };
 
-const transformTweets = (tweets) => {
-  return tweets.map(tweet => ({
+const transformTweets = (tweets: any) => {
+  return tweets.map((tweet: any) => ({
     text: tweet.text,
-    created_at: tweet.created_at
+    created_at: tweet.created_at,
   }));
 };
 
-export default async function handler(req, res) {
+export default async function handler(req: any, res: any) {
   const { username } = req.query;
 
   // Connect to MongoDB
-  const client = new MongoClient(process.env.MONGODB_URI);
+  const client = new MongoClient(process.env.MONGODB_URI!);
   await client.connect();
   const db = client.db();
 
@@ -88,12 +98,12 @@ export default async function handler(req, res) {
       res.status(200).json({
         author_id: cachedTweets.authorId,
         author_name: cachedTweets.userName,
-        tweets: cachedTweets.tweets
+        tweets: cachedTweets.tweets,
       });
     } else {
       console.log(`Unable to find cached tweets for userId ${authorId}.`);
       // Fetch tweets from Twitter API
-      let allTweets = [];
+      let allTweets: any[] = [];
       let nextToken = null;
       let count = 0;
 
@@ -116,7 +126,7 @@ export default async function handler(req, res) {
       res.status(200).json({
         author_id: authorId,
         author_name: username,
-        tweets: allTweets
+        tweets: allTweets,
       });
     }
   } catch (error) {
