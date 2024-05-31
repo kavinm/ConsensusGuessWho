@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ConnectButton,
   useCurrentAccount,
@@ -6,7 +6,7 @@ import {
   useSuiClient,
   useSignTransaction,
 } from "@mysten/dapp-kit";
-import { askQuestion, guessAnswer, newRound } from "@/contract/calls";
+import { askQuestion, guessAnswer } from "@/contract/calls";
 import {
   Box,
   Button,
@@ -18,10 +18,11 @@ import {
   Flex,
   Heading,
 } from "@chakra-ui/react";
+import { getStakeBalance } from "@/contract/indexer";
 
 export default function Home() {
+  const [potBalance, setPotBalance] = useState("0");
   const [question, setQuestion] = useState("");
-  const [guess, setGuess] = useState("");
   const [answer, setAnswer] = useState("");
   const [tweets, setTweets] = useState([]);
 
@@ -29,28 +30,20 @@ export default function Home() {
   // const client = useSuiClient();
   // const { mutateAsync: signTransaction } = useSignTransaction();
 
+  const fetchPotBalance = async () => {
+    try {
+      const balance = await getStakeBalance();
+      setPotBalance(balance.toString());
+    } catch (error) {
+      console.error("Error fetching pot balance:", error);
+    }
+  };
+
   const handleFetchTweets = async (username: string) => {
     try {
-      // Call setUsername API with 'VitalikButerin'
-      await fetch("/api/setUsername", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userName: "gavofyork" }),
-      });
-
-      // Call getUsername API to retrieve the stored username
-      const getUsernameResponse = await fetch("/api/getUsername");
-      const getUsernameData = await getUsernameResponse.json();
-      const storedUsername = getUsernameData.userName;
-
-      // Call fetchTweets API with the retrieved username
-      const fetchTweetsResponse = await fetch(
-        `/api/tweets?username=${storedUsername}`
-      );
-      const fetchTweetsData = await fetchTweetsResponse.json();
-      setTweets(fetchTweetsData.tweets);
+      const response = await fetch(`/api/tweets?username=${username}`);
+      const data = await response.json();
+      setTweets(data.tweets);
     } catch (error) {
       console.error("Error fetching tweets:", error);
     }
@@ -68,7 +61,8 @@ export default function Home() {
       //   signature,
       // });
 
-      // console.log(executeResult);
+      console.log(executeResult);
+      await fetchPotBalance();
       const response = await fetch("/api/ask", {
         method: "POST",
         headers: {
@@ -85,34 +79,44 @@ export default function Home() {
 
   const handleGuess = async () => {
     try {
-      // const txb = await guessAnswer(guess);
-      // const { bytes, signature } = await signTransaction({
-      //   transaction: txb,
-      //   chain: "sui:testnet",
-      // });
-      // const executeResult = await client.executeTransactionBlock({
-      //   transactionBlock: bytes,
-      //   signature,
-      //   options: {
-      //     showEvents: true,
-      //   },
-      // });
-      // console.log(executeResult);
-      // if (executeResult.events) {
-      //   const winner = (executeResult as any).events[0].parsedJson.winner;
-      //   if (winner === account?.address) {
-      //     // TODO:
-      //     alert("You won!");
-      //   }
-      // }
+      console.log("Guessing answer:", guess);
+      const txb = await guessAnswer(guess);
+      const { bytes, signature } = await signTransaction({
+        transaction: txb,
+        chain: "sui:testnet",
+      });
+      const executeResult = await client.executeTransactionBlock({
+        transactionBlock: bytes,
+        signature,
+        options: {
+          showEvents: true,
+        },
+      });
+      await fetchPotBalance();
+      console.log(executeResult);
+      if (executeResult.events && executeResult.events?.length > 0) {
+        const winner = (executeResult as any).events[0].parsedJson.winner;
+        console.log("Winner: ", winner);
+        if (winner === account?.address) {
+          // TODO:
+          alert("You won!");
+          const response = await fetch("/api/round");
+          if (response.ok) {
+            alert("New round started!");
+          } else {
+            alert("Error starting new round");
+          }
+        }
+      }
     } catch (error) {
       console.error("Error asking question:", error);
     }
   };
 
   return (
-    <div>
+    <>
       <ConnectButton />
+      <div>{potBalance} SUI</div>
       <Box
         p={4}
         minH="100vh"
@@ -153,7 +157,6 @@ export default function Home() {
             transform="translateX(-50%)"
             width="90%"
           />
-
           <VStack spacing={4} w="100%" maxW="md" mt="100%">
             {" "}
             // Adjusted margin-top
@@ -202,6 +205,6 @@ export default function Home() {
           Test
         </Button>{" "}
       </Box>
-    </div>
+    </>
   );
 }

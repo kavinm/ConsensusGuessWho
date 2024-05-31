@@ -7,6 +7,9 @@ import { execSync } from "child_process";
 import { fileURLToPath } from "url";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { writeFileSync } from "fs";
+import { sha256 } from "js-sha256";
+import { TYPE_ARGS } from "@/constants";
+import { bcs } from "@mysten/sui/bcs";
 
 const NAME = "guesswho";
 
@@ -14,6 +17,7 @@ dotenv.config({ path: ".env" });
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
 if (!PRIVATE_KEY) throw new Error("PRIVATE_KEY is not set");
 const NETWORK = "testnet";
+const keccak256 = require("keccak256");
 
 if (!NETWORK) throw new Error("NEXT_PUBLIC_SUI_NETWORK is not set");
 
@@ -88,6 +92,25 @@ async function main() {
     ADMIN_CAP: adminCap,
     GAME: game,
   };
+
+  const txb1 = new TransactionBlock();
+  const username = "VitalikButerin";
+  const answer_hash = keccak256(username);
+  txb1.moveCall({
+    target: `${packageId}::round::new`,
+    arguments: [
+      txb1.object(adminCap!),
+      txb1.object(game!),
+      txb1.pure(bcs.vector(bcs.U8).serialize(answer_hash)),
+    ],
+    typeArguments: TYPE_ARGS,
+  });
+  const executeResult = await client.signAndExecuteTransactionBlock({
+    transactionBlock: txb1,
+    signer: keypair,
+  });
+
+  console.log(executeResult);
 
   const deployed_path = path.join(
     path_to_scripts,
