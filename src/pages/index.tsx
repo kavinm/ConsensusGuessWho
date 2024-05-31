@@ -15,6 +15,17 @@ export default function Home() {
   const [question, setQuestion] = useState("");
   const [guess, setGuess] = useState("");
   const [answer, setAnswer] = useState("");
+  const [tweets, setTweets] = useState([]);
+
+  const handleFetchTweets = async (username: string) => {
+    try {
+      const response = await fetch(`/api/tweets?username=${username}`);
+      const data = await response.json();
+      setTweets(data.tweets);
+    } catch (error) {
+      console.error("Error fetching tweets:", error);
+    }
+  };
 
   const handleAskQuestion = async () => {
     try {
