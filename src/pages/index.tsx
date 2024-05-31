@@ -140,6 +140,8 @@ export default function Home() {
           }
           await handleFetchTweets();
         }
+      } else {
+        alert("You guessed incorrectly!");
       }
     } catch (error) {
       console.error("Error asking question:", error);
@@ -161,7 +163,7 @@ export default function Home() {
         <Box position="absolute" top="1rem" right="1rem">
           <ConnectButton />
         </Box>
-        <Box position="absolute" bottom="33%" right="70%" cursor="pointer">
+        <Box position="absolute" bottom="43%" right="70%" cursor="pointer">
           <Link href="/how-to-play" passHref>
             <Box bg="#32a0a8" borderRadius="md">
               <Text fontSize="2xl" color="black">
