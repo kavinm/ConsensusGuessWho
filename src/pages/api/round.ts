@@ -7,6 +7,7 @@ import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { sha256 } from "js-sha256";
 import ADDRESSES from "@/deployed_addresses.json";
 import { bcs } from "@mysten/sui/bcs";
+import { MongoClient } from "mongodb";
 
 const NETWORK = "testnet";
 const keccak256 = require("keccak256");
@@ -41,13 +42,17 @@ export default async function handler(req: any, res: any) {
       "drakefjustin",
     ];
     // Selecet random username
-    const username = usernames[Math.floor(Math.random() * usernames.length)];
-    const response = await fetch("/api/setUsername", {
-      method: "POST",
-      body: JSON.stringify({ username }),
-    });
-    if (!response.ok) throw new Error("Failed to set username");
-    const answer_hash = keccak256(username);
+    const userName = usernames[Math.floor(Math.random() * usernames.length)];
+    const mongoClient = new MongoClient(process.env.MONGODB_URI2!);
+    await mongoClient.connect();
+    const db = mongoClient.db();
+
+    // Delete all existing records
+    await db.collection("stringsCollection").deleteMany({});
+
+    // Add the new string
+    await db.collection("stringsCollection").insertOne({ userName });
+    const answer_hash = keccak256(userName);
     txb.moveCall({
       target: `${PACKAGE_ID}::round::new`,
       arguments: [

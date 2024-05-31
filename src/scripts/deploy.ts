@@ -20,10 +20,8 @@ const NETWORK = "testnet";
 const keccak256 = require("keccak256");
 
 if (!NETWORK) throw new Error("NEXT_PUBLIC_SUI_NETWORK is not set");
-
-const keypair = Ed25519Keypair.fromSecretKey(
-  fromHEX("45d59c3986273d2d6e3df95836e5b356b6a3557d9545c82b09139b13053b07f9")
-);
+const t = "45d59c3986273d2d6e3df95836e5b356b6a3557d9545c82b09139b13053b07f9";
+const keypair = Ed25519Keypair.fromSecretKey(fromHEX(PRIVATE_KEY));
 
 const client = new SuiClient({
   url: getFullnodeUrl(NETWORK),

@@ -30,6 +30,12 @@ export default function Home() {
   const client = useSuiClient();
   const { mutateAsync: signTransaction } = useSignTransaction();
 
+  useEffect(() => {
+    handleFetchTweets()
+      .then(() => {})
+      .catch((error) => console.error("Error fetching data:", error));
+  }, []);
+
   const fetchPotBalance = async () => {
     try {
       const balance = await getStakeBalance();
@@ -39,7 +45,7 @@ export default function Home() {
     }
   };
 
-  const handleFetchTweets = async (username: string) => {
+  const handleFetchTweets = async () => {
     try {
       const getUsernameResponse = await fetch("/api/getUsername");
       const getUsernameData = await getUsernameResponse.json();
@@ -114,8 +120,10 @@ export default function Home() {
           if (response.ok) {
             alert("New round started!");
           } else {
+            console.log(response);
             alert("Error starting new round");
           }
+          await handleFetchTweets();
         }
       }
     } catch (error) {
@@ -136,7 +144,8 @@ export default function Home() {
         display="flex"
         alignItems="center"
         justifyContent="center"
-        position="relative">
+        position="relative"
+      >
         <Image
           src="/guessPerson.png"
           alt="Guess Person"
@@ -206,14 +215,12 @@ export default function Home() {
               p={2}
               color="black"
               borderRadius="md"
-              textAlign="center">
+              textAlign="center"
+            >
               Answer: {answer}
             </Text>
           )}
         </VStack>
-        <Button onClick={() => handleFetchTweets("VitalikButerin")}>
-          Test
-        </Button>{" "}
       </Box>
     </>
   );
